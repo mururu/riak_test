@@ -675,7 +675,7 @@ find_line_content1(Port, TimeStamp, Data) ->
             [{ TimeStamp, PartIndex, estimated_number_of_keys, list_to_integer(NumKeys)}
              | find_line(Port, file:read_line(Port))];
         nomatch ->
-            find_line_content2(Port, TimeStamp, data)
+            find_line_content2(Port, TimeStamp, Data)
     end.
 
 
@@ -686,7 +686,7 @@ find_line_content2(Port, TimeStamp, Data) ->
             [{ TimeStamp, list_to_integer(PartIndex), finish_sending, false, list_to_integer(BloomCount), list_to_integer(DiffCount)}
              | find_line(Port, file:read_line(Port))];
         nomatch ->
-            find_line_content3(Port, TimeStamp, data)
+            find_line_content3(Port, TimeStamp, Data)
     end.
 
 
@@ -697,7 +697,7 @@ find_line_content3(Port, TimeStamp, Data) ->
             [{ TimeStamp, list_to_integer(PartIndex), finish_sending, false, list_to_integer(BloomCount), list_to_integer(DiffCount)}
              | find_line(Port, file:read_line(Port))];
         nomatch ->
-            find_line_content4(Port, TimeStamp, data)
+            find_line_content4(Port, TimeStamp, Data)
     end.
 
 
@@ -707,7 +707,7 @@ find_line_content4(Port, TimeStamp, Data) ->
         {match, [PartIndex]} ->
             [{ TimeStamp, PartIndex, aae_fullsync_completed } | find_line(Port, file:read_line(Port))];
         nomatch ->
-            find_line_content5(Port, TimeStamp, data)
+            find_line_content5(Port, TimeStamp, Data)
     end.
 
 find_line_content5(Port, TimeStamp, Data) ->
