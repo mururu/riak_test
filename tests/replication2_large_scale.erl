@@ -20,7 +20,7 @@
         [{riak_kv, [{storage_backend, riak_kv_eleveldb_backend},
                     {anti_entropy, {on, []}},
                     {anti_entropy_build_limit, {100, 1000}},
-                    {anti_entropy_concurrency, 10}
+                    {anti_entropy_concurrency, 100}
                    ]},
          {riak_repl, [{realtime_connection_rebalance_max_delay_secs, 30},
                       {fullsync_strategy, aae},
@@ -63,8 +63,6 @@ confirm() ->
     timer:sleep(?Sleep),
 
     State1 = node_a_leave(State),
-    rt:wait_until_no_pending_changes(all_active_nodes(State1)),
-    rt:wait_until_transfers_complete(State1#state.a_up),
 
     timer:sleep(?Sleep),
     
@@ -224,9 +222,11 @@ node_b_join(State) ->
 
 node_a_leave(State, Node) ->
     leave(Node),
+    rt:wait_until_unpingable(Node),
     new_state(State, node_a_leave, [Node]).
 node_b_leave(State, Node) ->
     leave(Node),
+    rt:wait_until_unpingable(Node),
     new_state(State, node_b_leave, [Node]).
 node_a_join(State, Node) ->
     join(Node, hd(State#state.a_up)),
