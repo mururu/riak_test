@@ -34,8 +34,10 @@
 
 -define(Sleep, 5 * 60 * 1000).
 
+-define(HARNESS, (rt_config:get(rt_harness))).
+
 confirm() ->
-    rt_bench:stop_bench(),
+    stop_bench(),
     {ANodes, BNodes} =
         case rt_config:get(preloaded_data, false) of
             true ->
@@ -48,15 +50,7 @@ confirm() ->
 
     State = #state{ a_up = ANodes, b_up = BNodes},
     
-    AllLoadGens = rt_config:get(perf_loadgens, ["localhost"]),
-    case length(AllLoadGens) of
-        1 ->
-            start_basho_bench(ANodes ++ BNodes, AllLoadGens);
-        N ->
-            {ALoadGens, BLoadGens} = lists:split(N div 2, AllLoadGens),
-            start_basho_bench(ANodes, ALoadGens),
-            start_basho_bench(BNodes, BLoadGens)
-    end,
+    start_bench(ANodes, BNodes),
     put(test_start, now()),
 
 
@@ -98,7 +92,7 @@ confirm() ->
     timer:sleep(?Sleep),
 
     run_full_sync(State7),
-    rt_bench:stop_bench(),
+    stop_bench(),
     timer:sleep(?Sleep),
     run_full_sync(State7),
 
@@ -120,6 +114,30 @@ run_full_sync(State) ->
                                   start_and_wait_until_fullsync_complete,
                                   [LeaderA]),
     time_stamp_action(full_done, FullsyncTime div 1000000).
+
+start_bench(ANodes, BNodes) ->
+    case ?HARNESS of
+        rtssh ->
+            AllLoadGens = rt_config:get(perf_loadgens, ["localhost"]),
+            case length(AllLoadGens) of
+                1 ->
+                    start_basho_bench(ANodes ++ BNodes, AllLoadGens);
+                N ->
+                    {ALoadGens, BLoadGens} = lists:split(N div 2, AllLoadGens),
+                    start_basho_bench(ANodes, ALoadGens),
+                    start_basho_bench(BNodes, BLoadGens)
+            end;
+        _ ->
+            ok
+    end.
+
+stop_bench() ->
+    case ?HARNESS of
+        rtssh ->
+            rt_bench:stop_bench();
+        _ ->
+            ok
+    end.
 
 start_basho_bench(Nodes, LoadGens) ->
         PbIps = lists:map(fun(Node) ->
