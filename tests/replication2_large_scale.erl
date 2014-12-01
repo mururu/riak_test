@@ -21,6 +21,7 @@
                     {anti_entropy, {on, []}},
                     {anti_entropy_build_limit, {100, 1000}},
                     {anti_entropy_concurrency, 100}
+
                    ]},
          {riak_repl, [{realtime_connection_rebalance_max_delay_secs, 30},
                       {fullsync_strategy, aae},
@@ -39,14 +40,7 @@
 confirm() ->
     stop_bench(),
     {ANodes, BNodes} =
-        case rt_config:get(preloaded_data, false) of
-            true ->
-                Conf =
-                    [{eleveldb, [{data_root, " /mnt"}]}] ++ ?Conf,
-                repl_util:deploy_clusters_with_rt([{?SizeA, Conf}, {?SizeB, Conf}], '<->');
-            false ->
-                repl_util:create_clusters_with_rt([{?SizeA, ?Conf}, {?SizeB,?Conf}], '<->')
-        end,
+        repl_util:create_clusters_with_rt([{?SizeA, ?Conf}, {?SizeB,?Conf}], '<->'),
 
     State = #state{ a_up = ANodes, b_up = BNodes},
     
