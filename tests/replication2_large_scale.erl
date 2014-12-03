@@ -40,7 +40,12 @@
 confirm() ->
     stop_bench(),
     {ANodes, BNodes} =
-        repl_util:create_clusters_with_rt([{?SizeA, ?Conf}, {?SizeB,?Conf}], '<->'),
+        case rt_config:get(preloaded_data, false) of
+            true ->
+                repl_util:deploy_clusters_with_rt([{?SizeA, ?Conf}, {?SizeB, ?Conf}], '<->');
+            false ->
+                repl_util:create_clusters_with_rt([{?SizeA, ?Conf}, {?SizeB,?Conf}], '<->')
+        end,
 
     State = #state{ a_up = ANodes, b_up = BNodes},
     
