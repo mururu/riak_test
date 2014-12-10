@@ -48,55 +48,55 @@ confirm() ->
         end,
 
     State = #state{ a_up = ANodes, b_up = BNodes},
-    
+
     start_bench(ANodes, BNodes),
     put(test_start, now()),
 
 
     timer:sleep(?Sleep),
 
-%%     State1 = node_a_leave(State),
-%% 
-%%     timer:sleep(?Sleep),
-%%     
-%%     run_full_sync(State1),
-%%     timer:sleep(?Sleep),
-%% 
-%%     State2 = node_a_down(State1),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State2)),
-%% 
-%%     State3 = node_b_down(State2),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State3)),
-%% 
-%%     State4 = node_a_up(State3),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State4)),
-%% 
-%%     State5 = node_b_down(State4),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State5)),
-%% 
-%%     State6 = node_a_join(State5),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State6)),
-%%     timer:sleep(?Sleep),
-%% 
-%%     run_full_sync(State6),
-%%     timer:sleep(?Sleep),
-%% 
-%%     State7 = node_b_up(State6),
-%%     rt:wait_until_no_pending_changes(all_active_nodes(State7)),
-%%     timer:sleep(?Sleep),
-%% 
-%%     run_full_sync(State7),
-%%     stop_bench(),
-%%     timer:sleep(?Sleep),
-%%     run_full_sync(State7),
+    State1 = node_a_leave(State),
+    timer:sleep(?Sleep),
 
-%  Functions for running random up/down of nodes.
-    _ = random:seed(now()),
-    lists:foldl(fun(_N, StateIn) ->
-                                 NewState = random_action(StateIn),
-                                 run_full_sync(NewState)
-                         end, State, lists:seq(1,100)),
+    run_full_sync(State1),
+    timer:sleep(?Sleep),
+
+    State2 = node_a_down(State1),
+    rt:wait_until_no_pending_changes(all_active_nodes(State2)),
+
+    State3 = node_b_down(State2),
+    rt:wait_until_no_pending_changes(all_active_nodes(State3)),
+
+    State4 = node_a_up(State3),
+    rt:wait_until_no_pending_changes(all_active_nodes(State4)),
+
+    State5 = node_b_down(State4),
+    rt:wait_until_no_pending_changes(all_active_nodes(State5)),
+
+    State6 = node_a_join(State5),
+    rt:wait_until_no_pending_changes(all_active_nodes(State6)),
+    timer:sleep(?Sleep),
+
+    run_full_sync(State6),
+    timer:sleep(?Sleep),
+
+    State7 = node_b_up(State6),
+    rt:wait_until_no_pending_changes(all_active_nodes(State7)),
+    timer:sleep(?Sleep),
+
+    run_full_sync(State7),
     stop_bench(),
+    timer:sleep(?Sleep),
+    run_full_sync(State7),
+
+%% %  Functions for running random up/down of nodes.
+%%     _ = random:seed(now()),
+%%     lists:foldl(fun(_N, StateIn) ->
+%%                                  NewState = random_action(StateIn),
+%%                                  run_full_sync(NewState)
+%%                          end, State, lists:seq(1,100)),
+    stop_bench(),
+    run_full_sync(State7),
 
     pass.
 
@@ -145,11 +145,11 @@ start_basho_bench(Nodes, LoadGens) ->
 
 bacho_bench_config(HostList) ->
     BenchRate =
-        rt_config:get(basho_bench_rate, 25),
+        rt_config:get(basho_bench_rate, 20),
     BenchDuration =
         rt_config:get(basho_bench_duration, infinity),
     KeyGen =
-        rt_config:get(basho_bench_keygen, {int_to_bin_bigendian, {pareto_int, 10000000}}),
+        rt_config:get(basho_bench_keygen, {to_binstr, "~w", {partitioned_sequential_int, 30000000}}),
     ValGen =
         rt_config:get(basho_bench_valgen, {exponential_bin, 1000, 10000}),
     Operations =
