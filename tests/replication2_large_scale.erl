@@ -48,20 +48,17 @@ confirm() ->
         end,
 
     State = #state{ a_up = ANodes, b_up = BNodes},
+    rt:wait_until_aae_trees_built(all_active_nodes(State)),
+
 
     start_bench(ANodes, BNodes),
     put(test_start, now()),
 
-
+    timer:sleep(?Sleep),
+    run_full_sync(State),
     timer:sleep(?Sleep),
 
-    State1 = node_a_leave(State),
-    timer:sleep(?Sleep),
-
-    run_full_sync(State1),
-    timer:sleep(?Sleep),
-
-    State2 = node_a_down(State1),
+    State2 = node_a_down(State),
     rt:wait_until_no_pending_changes(all_active_nodes(State2)),
 
     State3 = node_b_down(State2),
@@ -70,33 +67,15 @@ confirm() ->
     State4 = node_a_up(State3),
     rt:wait_until_no_pending_changes(all_active_nodes(State4)),
 
-    State5 = node_b_down(State4),
+    State5 = node_b_up(State4),
     rt:wait_until_no_pending_changes(all_active_nodes(State5)),
 
-    State6 = node_a_join(State5),
-    rt:wait_until_no_pending_changes(all_active_nodes(State6)),
+    run_full_sync(State5),
     timer:sleep(?Sleep),
 
-    run_full_sync(State6),
-    timer:sleep(?Sleep),
-
-    State7 = node_b_up(State6),
-    rt:wait_until_no_pending_changes(all_active_nodes(State7)),
-    timer:sleep(?Sleep),
-
-    run_full_sync(State7),
     stop_bench(),
     timer:sleep(?Sleep),
-    run_full_sync(State7),
-
-%% %  Functions for running random up/down of nodes.
-%%     _ = random:seed(now()),
-%%     lists:foldl(fun(_N, StateIn) ->
-%%                                  NewState = random_action(StateIn),
-%%                                  run_full_sync(NewState)
-%%                          end, State, lists:seq(1,100)),
-    stop_bench(),
-    run_full_sync(State7),
+    run_full_sync(State5),
 
     pass.
 
@@ -155,9 +134,9 @@ bacho_bench_config(HostList) ->
     Operations =
         rt_config:get(basho_bench_operations, [{get, 5},{put, 1}]),
     Bucket =
-        rt_config:get(basho_bench_bucket, <<"testbucket">>),
+        rt_config:get(basho_bench_bucket, <<"mybucket">>),
     Driver =
-        rt_config:get(basho_bench_driver, riakc_pb), 
+        rt_config:get(basho_bench_driver, riakc_pb),
     ReportInterval =
          rt_config:get(basho_bench_report_interval, 5),
     
@@ -307,5 +286,12 @@ time_stamp_action(Action, MetaData) ->
 lager:info("repl_test ~p ~p ~p", [time_since_test_start(), Action, MetaData]).
 
 time_since_test_start() ->
-    timer:now_diff(now(), get(test_start)) div 1000000. 
+    timer:now_diff(now(), get(test_start)) div 1000000.
+
+random_up_down(State, N) ->
+    _ = random:seed(now()),
+    lists:foldl(fun(_N, StateIn) ->
+                                 NewState = random_action(StateIn),
+                                 run_full_sync(NewState)
+                         end, State, lists:seq(1,N)).
 
