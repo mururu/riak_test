@@ -18,10 +18,7 @@
 
 -define(Conf,
         [{riak_kv, [{storage_backend, riak_kv_eleveldb_backend},
-                    {anti_entropy, {on, []}},
-                    {anti_entropy_build_limit, {100, 1000}},
-                    {anti_entropy_concurrency, 100}
-
+                    {anti_entropy, {on, []}}
                    ]},
          {riak_repl, [{realtime_connection_rebalance_max_delay_secs, 30},
                       {fullsync_strategy, aae},
